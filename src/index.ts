@@ -1,17 +1,26 @@
-import * as db from "./TranscriptManager.js";
+// index.ts
+
 import express from "express";
 import cors from "cors";
+import * as db from "./TranscriptManager.js";
+import * as ds from "./dataService.js";
+import type { Transcript } from "./TranscriptManager.js";
+
+
+// Express Server Setup
 
 const app: express.Application = express();
 const port = 4001;
 
-
 app.use(cors());
-
-// middleware
-app.use(express.json()); 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 db.initialize();
+// REST Endpoints
+
+
+// GET /transcripts
 app.get("/transcripts", (req, res) => {
   console.log("Handling GET /transcripts");
   let data = db.getAll();
@@ -19,6 +28,7 @@ app.get("/transcripts", (req, res) => {
   res.status(200).send(data);
 });
 
+// POST /transcripts
 app.post("/transcripts", (req, res) => {
   const studentName: string = req.body.name;
   let studentID = db.addStudent(studentName);
@@ -26,8 +36,8 @@ app.post("/transcripts", (req, res) => {
   res.status(200).send({ studentID });
 });
 
-//post grades and course 
-app.post('/transcripts/:id/:course', (req, res) => {
+// POST /transcripts/:id/:course
+app.post("/transcripts/:id/:course", (req, res) => {
   const id = parseInt(req.params.id);
   const courseName = req.params.course;
   const grade = parseInt(req.body.grade);
@@ -42,7 +52,7 @@ app.post('/transcripts/:id/:course', (req, res) => {
   }
 });
 
-
+// GET /transcripts/:id
 app.get("/transcripts/:id", (req, res) => {
   const id = req.params.id;
   console.log(`Handling GET /transcripts/:id id = ${id}`);
@@ -54,6 +64,7 @@ app.get("/transcripts/:id", (req, res) => {
   }
 });
 
+// GET /studentids?name=string
 app.get("/studentids", (req, res) => {
   const studentName = req.query.name as string;
   console.log(`Handling GET /studentids?name=${studentName}`);
@@ -74,7 +85,7 @@ app.delete("/transcripts/:id", (req, res) => {
   }
 });
 
-// fallback 404 handler (covers all methods)
+// fallback 404
 app.use((req, res) => {
   console.log(defaultErrorMessage(req.method, req.path));
   res.sendStatus(404);
@@ -89,3 +100,39 @@ function initializeServer() {
 }
 
 app.listen(port, initializeServer);
+
+// Client-side Script Part
+
+
+console.log("starting index.ts");
+
+// Example script: add a student, then fetch their transcript
+async function script1() {
+  const student = await ds.addStudent("Jasur");
+  console.log("Added student:", student);
+
+  const ids = await ds.getStudentIDs("Jasur");
+  console.log("Student IDs:", ids);
+
+  const firstId = ids[0];
+  if (firstId !== undefined) {
+    const transcript: Transcript = await ds.getTranscript(firstId);
+    console.log("Transcript for Jasur:", transcript);
+  }
+}
+
+
+async function getTranscriptsByName(studentName: string): Promise<Transcript[]> {
+  const ids = await ds.getStudentIDs(studentName);
+  const transcripts: Transcript[] = [];
+  for (const id of ids) {
+    const transcript: Transcript = await ds.getTranscript(id); 
+    transcripts.push(transcript);
+  }
+  return transcripts;
+}
+
+// Kick off the scripts
+script1();
+console.log( getTranscriptsByName("Jasur")); // prints Promise<pending>
+console.log("index.ts done");

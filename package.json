@@ -3,18 +3,18 @@
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node src/TranscriptManager.js",
+    "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-     "build": "tsc",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cor": "^0.0.0",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "express": "^5.1.0"
   },
